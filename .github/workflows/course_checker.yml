@@ -2,9 +2,8 @@
 
 on:
   schedule:
-    # Run every 15 minutes starting at minute 00, 15, 30, 45
-    - cron: '*/15 * * * *'
-  workflow_dispatch: # Manual trigger from GitHub Actions tab
+    - cron: '0,15,30,45 * * * *'
+  workflow_dispatch:
 
 jobs:
   check-courses:
