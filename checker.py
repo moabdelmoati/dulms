@@ -46,50 +46,65 @@ def run_check():
         send_telegram_message(msg)
         return
 
-    has_open_seat = False
+    has_urgent_open_seat = False
     courses_blocks = []
 
     for c in courses:
         c_id = c.get('CourseId')
-        c_code = c.get('Code', '')
-        c_name = c.get('Name', '')
+        c_code = c.get('Code', '').strip()
+        c_name = c.get('Name', '').strip()
         c_hours = c.get('CreditHours', 0)
 
+        # Check if course is general requirements (GEN)
+        is_gen = c_code.upper().startswith('GEN')
+
         schedules = client.get_course_schedule(c_id)
-        block = f'📚 <b>[{c_code}] {c_name}</b> ({c_hours} ساعات)\n'
+        open_groups = [s for s in schedules if s.get('is_open')]
 
-        if not schedules:
-            block += '  ⚠️ لا توجد مواعيد أو مجموعات معلنة بعد.\n'
+        if is_gen:
+            # General courses (GEN): Simplified display without numbers, no urgent alert
+            block = f'📚 <b>[{c_code}] {c_name}</b> ({c_hours} ساعات)\n'
+            if open_groups:
+                open_grp_names = ", ".join([f"Group {s['group_name']}" for s in open_groups])
+                block += f'  🟢 <b>مفتوحة للتسجيل</b> ({open_grp_names})\n'
+            else:
+                block += '  🔴 مغلقة حالياً\n'
         else:
-            for s in schedules:
-                grp = s['group_name']
-                cap = s['capacity']
-                reg = s['registered']
-                avail = s['available_seats']
-                blocked = s['is_blocked']
-                is_open = s['is_open']
+            # Major / Specialty courses: Detailed groups, seats count, and triggers urgent alert
+            block = f'📚 <b>[{c_code}] {c_name}</b> ({c_hours} ساعات)\n'
+            if not schedules:
+                block += '  ⚠️ لا توجد مواعيد أو مجموعات معلنة بعد.\n'
+            else:
+                for s in schedules:
+                    grp = s['group_name']
+                    cap = s['capacity']
+                    reg = s['registered']
+                    avail = s['available_seats']
+                    blocked = s['is_blocked']
+                    is_open = s['is_open']
 
-                if is_open:
-                    has_open_seat = True
-                    icon = '🟢'
-                    status = f'<b>مفتوح للتسجيل! (متبقي {avail} مقعد)</b>'
-                elif blocked:
-                    icon = '🔴'
-                    status = f'مغلق / Blocked ({reg}/{cap})'
-                elif avail == 0:
-                    icon = '🔴'
-                    status = f'مكتمل ({reg}/{cap})'
-                else:
-                    icon = '🟡'
-                    status = f'متبقي {avail} مقعد'
+                    if is_open:
+                        has_urgent_open_seat = True
+                        icon = '🟢'
+                        status = f'<b>مفتوح للتسجيل! (متبقي {avail} مقعد)</b>'
+                    elif blocked:
+                        icon = '🔴'
+                        status = f'مغلق / Blocked ({reg}/{cap})'
+                    elif avail == 0:
+                        icon = '🔴'
+                        status = f'مكتمل ({reg}/{cap})'
+                    else:
+                        icon = '🟡'
+                        status = f'متبقي {avail} مقعد'
 
-                block += f'  {icon} Group <b>{grp}</b>: {status}\n'
-                if is_open and s.get('day'):
-                    block += f"     ⏰ {s['day']} {s['time']} ({s['room']})\n"
+                    block += f'  {icon} Group <b>{grp}</b>: {status}\n'
+                    if is_open and s.get('day'):
+                        block += f"     ⏰ {s['day']} {s['time']} ({s['room']})\n"
 
         courses_blocks.append(block)
 
-    if has_open_seat:
+    # Header only becomes URGENT if a major/specialty course (non-GEN) has open seats
+    if has_urgent_open_seat:
         header = '🚨 <b>تنبيه عاجل: توجد مقاعد شاغرة للتسجيل الآن!</b>\n'
     else:
         header = '📊 <b>تقرير فحص مواد جامعة الدلتا (كل 15 دقيقة)</b>\n'
