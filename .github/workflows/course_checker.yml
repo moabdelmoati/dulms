@@ -3,6 +3,8 @@
 on:
   schedule:
     - cron: '0,15,30,45 * * * *'
+  repository_dispatch:
+    types: [check_courses]
   workflow_dispatch:
 
 jobs:
