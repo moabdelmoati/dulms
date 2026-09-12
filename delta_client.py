@@ -1,4 +1,4 @@
-import requests
+﻿import requests
 from bs4 import BeautifulSoup
 import urllib3
 import config
@@ -15,12 +15,22 @@ class DeltaClient:
             'Accept-Language': 'en-US,en;q=0.9,ar;q=0.8',
         })
         self.is_logged_in = False
+        self.last_error = ''
 
     def login(self) -> bool:
+        if not self.username or not self.password:
+            self.last_error = f"بيانات الدخول غير موجودة (Username: {bool(self.username)}, Password: {bool(self.password)})"
+            print(f'[DeltaClient] {self.last_error}')
+            return False
+
         try:
-            get_resp = self.session.get(config.DELTA_LOGIN_URL, verify=False, timeout=20)
+            print(f"[DeltaClient] Connecting to {config.DELTA_LOGIN_URL}...")
+            get_resp = self.session.get(config.DELTA_LOGIN_URL, verify=False, timeout=25)
+            print(f"[DeltaClient] GET login.aspx status: {get_resp.status_code}")
+            
             if get_resp.status_code != 200:
-                print(f'[DeltaClient] Failed to load login page. Status: {get_resp.status_code}')
+                self.last_error = f"صفحة الدخول لم تستجب بشكل صحيح (HTTP {get_resp.status_code})"
+                print(f'[DeltaClient] {self.last_error}')
                 return False
 
             soup = BeautifulSoup(get_resp.text, 'html.parser')
@@ -29,7 +39,8 @@ class DeltaClient:
             eventvalidation = soup.find('input', {'id': '__EVENTVALIDATION'})
 
             if not viewstate:
-                print('[DeltaClient] Could not find ASP.NET ViewState inputs.')
+                self.last_error = "لم يتم العثور على حقول ASP.NET ViewState في الصفحة (ربما الموقع محجوب أو يعرض صفحة حظر)"
+                print(f'[DeltaClient] {self.last_error}')
                 return False
 
             payload = {
@@ -53,10 +64,11 @@ class DeltaClient:
                 headers=headers,
                 verify=False,
                 allow_redirects=False,
-                timeout=20
+                timeout=25
             )
 
-            # Delta portal redirects (302) to /Profile/StudentProfile on successful login
+            print(f"[DeltaClient] POST login.aspx status: {post_resp.status_code}, Location: {post_resp.headers.get('Location')}")
+
             if post_resp.status_code == 302 and 'StudentProfile' in post_resp.headers.get('Location', ''):
                 self.is_logged_in = True
                 print('[DeltaClient] Successfully logged in!')
@@ -66,11 +78,24 @@ class DeltaClient:
                 print('[DeltaClient] Successfully logged in (Auth cookie present)!')
                 return True
             else:
-                print('[DeltaClient] Login failed. Invalid credentials or portal error.')
+                post_soup = BeautifulSoup(post_resp.text, 'html.parser')
+                err_div = post_soup.find('div', class_='error')
+                err_text = err_div.text.strip() if err_div else ''
+                self.last_error = f"رفض السيرفر تسجيل الدخول (Status: {post_resp.status_code}). تفاصيل: {err_text or 'كلمة المرور أو الرقم غير صحيح'}"
+                print(f'[DeltaClient] {self.last_error}')
                 return False
 
+        except requests.exceptions.Timeout:
+            self.last_error = "انتهت مهلة الاتصال بسيرفر الجامعة (Connection Timeout)"
+            print(f'[DeltaClient] {self.last_error}')
+            return False
+        except requests.exceptions.ConnectionError as e:
+            self.last_error = f"تعذر الاتصال بسيرفر الجامعة (Connection Error / Geo-blocked): {e}"
+            print(f'[DeltaClient] {self.last_error}')
+            return False
         except Exception as e:
-            print(f'[DeltaClient] Login exception: {e}')
+            self.last_error = f"خطأ غير متوقع أثناء تسجيل الدخول: {e}"
+            print(f'[DeltaClient] {self.last_error}')
             return False
 
     def get_registration_info(self) -> dict:

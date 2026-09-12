@@ -11,7 +11,8 @@ def run_check():
     if not client.login():
         err_msg = (
             '❌ <b>تنبيه من بوت تسجيل المواد:</b>\n'
-            'فشل تسجيل الدخول إلى بوابة جامعة الدلتا. يرجى التأكد من البيانات أو فحص السيرفر.'
+            'فشل تسجيل الدخول إلى بوابة جامعة الدلتا.\n'
+            f'<b>السبب:</b> {client.last_error}'
         )
         send_telegram_message(err_msg)
         return
