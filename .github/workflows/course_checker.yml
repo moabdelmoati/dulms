@@ -1,0 +1,32 @@
+﻿name: Delta LMS Course Availability Checker
+
+on:
+  schedule:
+    # Run every 30 minutes
+    - cron: '*/30 * * * *'
+  workflow_dispatch: # Manual trigger from GitHub Actions tab
+
+jobs:
+  check-courses:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Run Course Checker
+        env:
+          STUDENT_ID: ${{ secrets.STUDENT_ID }}
+          STUDENT_PASS: ${{ secrets.STUDENT_PASS }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          python checker.py
