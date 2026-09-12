@@ -7,8 +7,10 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 class DeltaClient:
     def __init__(self, username=None, password=None):
-        self.username = username or config.STUDENT_ID
-        self.password = password or config.STUDENT_PASS
+        raw_u = username or config.STUDENT_ID or ''
+        raw_p = password or config.STUDENT_PASS or ''
+        self.username = str(raw_u).strip()
+        self.password = str(raw_p).strip()
         self.session = requests.Session()
         self.session.headers.update({
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
@@ -19,18 +21,21 @@ class DeltaClient:
 
     def login(self) -> bool:
         if not self.username or not self.password:
-            self.last_error = f"بيانات الدخول غير موجودة (Username: {bool(self.username)}, Password: {bool(self.password)})"
+            self.last_error = f"بيانات الدخول مفقودة من Secrets (User: {bool(self.username)}, Pass: {bool(self.password)})"
             print(f'[DeltaClient] {self.last_error}')
             return False
+
+        u_hint = f"len={len(self.username)} ({self.username[:2]}...{self.username[-2:]})" if len(self.username) >= 4 else "too_short"
+        p_hint = f"len={len(self.password)} ({self.password[:2]}...{self.password[-2:]})" if len(self.password) >= 4 else "too_short"
+        print(f"[DeltaClient] Username info: {u_hint}, Password info: {p_hint}")
 
         try:
             print(f"[DeltaClient] Connecting to {config.DELTA_LOGIN_URL}...")
             get_resp = self.session.get(config.DELTA_LOGIN_URL, verify=False, timeout=25)
             print(f"[DeltaClient] GET login.aspx status: {get_resp.status_code}")
-            
+
             if get_resp.status_code != 200:
-                self.last_error = f"صفحة الدخول لم تستجب بشكل صحيح (HTTP {get_resp.status_code})"
-                print(f'[DeltaClient] {self.last_error}')
+                self.last_error = f"صفحة الدخول لم تستجب (HTTP {get_resp.status_code})"
                 return False
 
             soup = BeautifulSoup(get_resp.text, 'html.parser')
@@ -39,8 +44,7 @@ class DeltaClient:
             eventvalidation = soup.find('input', {'id': '__EVENTVALIDATION'})
 
             if not viewstate:
-                self.last_error = "لم يتم العثور على حقول ASP.NET ViewState في الصفحة (ربما الموقع محجوب أو يعرض صفحة حظر)"
-                print(f'[DeltaClient] {self.last_error}')
+                self.last_error = "لم يتم العثور على حقول ASP.NET ViewState (ربما الموقع محجوب أو يعرض كابتشا)"
                 return False
 
             payload = {
@@ -67,9 +71,10 @@ class DeltaClient:
                 timeout=25
             )
 
-            print(f"[DeltaClient] POST login.aspx status: {post_resp.status_code}, Location: {post_resp.headers.get('Location')}")
+            loc = post_resp.headers.get('Location', '')
+            print(f"[DeltaClient] POST status: {post_resp.status_code}, Location: {loc}")
 
-            if post_resp.status_code == 302 and 'StudentProfile' in post_resp.headers.get('Location', ''):
+            if post_resp.status_code == 302 and 'StudentProfile' in loc:
                 self.is_logged_in = True
                 print('[DeltaClient] Successfully logged in!')
                 return True
@@ -81,21 +86,24 @@ class DeltaClient:
                 post_soup = BeautifulSoup(post_resp.text, 'html.parser')
                 err_div = post_soup.find('div', class_='error')
                 err_text = err_div.text.strip() if err_div else ''
-                self.last_error = f"رفض السيرفر تسجيل الدخول (Status: {post_resp.status_code}). تفاصيل: {err_text or 'كلمة المرور أو الرقم غير صحيح'}"
+                
+                # Check for other error indicators
+                alerts = [s.text.strip() for s in post_soup.find_all('span') if 'error' in s.get('class', []) or 'alert' in s.get('class', [])]
+                extra_err = " | ".join(alerts) if alerts else ""
+
+                detail = err_text or extra_err or f"Status: {post_resp.status_code}, Loc: {loc}"
+                self.last_error = f"رفض الموقع الدخول ({detail}). تحقق من كلمة المرور المكتوبة في Secrets ({p_hint})"
                 print(f'[DeltaClient] {self.last_error}')
                 return False
 
         except requests.exceptions.Timeout:
-            self.last_error = "انتهت مهلة الاتصال بسيرفر الجامعة (Connection Timeout)"
-            print(f'[DeltaClient] {self.last_error}')
+            self.last_error = "انتهت مهلة الاتصال بسيرفر الجامعة (Timeout)"
             return False
         except requests.exceptions.ConnectionError as e:
-            self.last_error = f"تعذر الاتصال بسيرفر الجامعة (Connection Error / Geo-blocked): {e}"
-            print(f'[DeltaClient] {self.last_error}')
+            self.last_error = f"تعذر الاتصال بسيرفر الجامعة (Connection Error): {e}"
             return False
         except Exception as e:
-            self.last_error = f"خطأ غير متوقع أثناء تسجيل الدخول: {e}"
-            print(f'[DeltaClient] {self.last_error}')
+            self.last_error = f"خطأ غير متوقع: {e}"
             return False
 
     def get_registration_info(self) -> dict:
