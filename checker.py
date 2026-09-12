@@ -8,7 +8,7 @@ def run_check():
     # Egypt / Cairo Timezone
     cairo_tz = ZoneInfo("Africa/Cairo")
     now_cairo = datetime.now(cairo_tz)
-    next_check = now_cairo + timedelta(minutes=30)
+    next_check = now_cairo + timedelta(minutes=15)
     
     now_str = now_cairo.strftime('%I:%M %p - %d/%m/%Y')
     next_str = next_check.strftime('%I:%M %p')
@@ -21,7 +21,7 @@ def run_check():
             '❌ <b>تنبيه من بوت تسجيل المواد:</b>\n'
             'فشل تسجيل الدخول إلى بوابة جامعة الدلتا.\n'
             f'<b>السبب:</b> {client.last_error}\n\n'
-            f'⏱️ <b>المحاولة القادمة:</b> في تمام <b>{next_str}</b> (بعد 30 دقيقة)'
+            f'⏱️ <b>المحاولة القادمة:</b> في تمام <b>{next_str}</b> (بعد 15 دقيقة)'
         )
         send_telegram_message(err_msg)
         return
@@ -41,7 +41,7 @@ def run_check():
             f'👤 الساعات المسموحة: <b>{allowed_hours}</b> | المدفوعة: <b>{paid_hours}</b> | المسجلة: <b>{registered_hours}</b>\n'
             f'⏳ الأيام المتبقية للتسجيل: <b>{remaining_days} يوم</b>\n\n'
             'ℹ️ <i>لا توجد أي مواد متاحة للتسجيل حالياً في صفحتك.</i>\n\n'
-            f'⏱️ <b>الفحص القادم:</b> في تمام <b>{next_str}</b> (بعد 30 دقيقة تقريباً)'
+            f'⏱️ <b>الفحص القادم:</b> في تمام <b>{next_str}</b> (بعد 15 دقيقة تقريباً)'
         )
         send_telegram_message(msg)
         return
@@ -92,13 +92,13 @@ def run_check():
     if has_open_seat:
         header = '🚨 <b>تنبيه عاجل: توجد مقاعد شاغرة للتسجيل الآن!</b>\n'
     else:
-        header = '📊 <b>تقرير فحص مواد جامعة الدلتا (كل 30 دقيقة)</b>\n'
+        header = '📊 <b>تقرير فحص مواد جامعة الدلتا (كل 15 دقيقة)</b>\n'
 
     header += f'🕒 {now_str}\n\n'
     header += f'👤 الساعات المسموحة: <b>{allowed_hours}</b> | المدفوعة: <b>{paid_hours}</b> | المسجلة: <b>{registered_hours}</b>\n'
     header += f'⏳ الأيام المتبقية للتسجيل: <b>{remaining_days} يوم</b>\n\n'
 
-    footer = f'\n⏱️ <b>الفحص القادم:</b> في تمام الساعة <b>{next_str}</b> (بعد 30 دقيقة تقريباً)'
+    footer = f'\n⏱️ <b>الفحص القادم:</b> في تمام الساعة <b>{next_str}</b> (بعد 15 دقيقة تقريباً)'
     full_message = header + '\n'.join(courses_blocks) + footer
     print('[Checker] Sending report to Telegram...')
     send_telegram_message(full_message)
