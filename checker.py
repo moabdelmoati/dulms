@@ -1,10 +1,18 @@
 ﻿# -*- coding: utf-8 -*-
-from datetime import datetime
+from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 from delta_client import DeltaClient
 from notifier import send_telegram_message
 
 def run_check():
-    now_str = datetime.now().strftime('%I:%M %p - %d/%m/%Y')
+    # Egypt / Cairo Timezone
+    cairo_tz = ZoneInfo("Africa/Cairo")
+    now_cairo = datetime.now(cairo_tz)
+    next_check = now_cairo + timedelta(minutes=30)
+    
+    now_str = now_cairo.strftime('%I:%M %p - %d/%m/%Y')
+    next_str = next_check.strftime('%I:%M %p')
+
     print(f'=== Starting Delta LMS Check at {now_str} ===')
     client = DeltaClient()
 
@@ -12,7 +20,8 @@ def run_check():
         err_msg = (
             '❌ <b>تنبيه من بوت تسجيل المواد:</b>\n'
             'فشل تسجيل الدخول إلى بوابة جامعة الدلتا.\n'
-            f'<b>السبب:</b> {client.last_error}'
+            f'<b>السبب:</b> {client.last_error}\n\n'
+            f'⏱️ <b>المحاولة القادمة:</b> في تمام <b>{next_str}</b> (بعد 30 دقيقة)'
         )
         send_telegram_message(err_msg)
         return
@@ -31,7 +40,8 @@ def run_check():
             f'🕒 {now_str}\n\n'
             f'👤 الساعات المسموحة: <b>{allowed_hours}</b> | المدفوعة: <b>{paid_hours}</b> | المسجلة: <b>{registered_hours}</b>\n'
             f'⏳ الأيام المتبقية للتسجيل: <b>{remaining_days} يوم</b>\n\n'
-            'ℹ️ <i>لا توجد أي مواد متاحة للتسجيل حالياً في صفحتك.</i>'
+            'ℹ️ <i>لا توجد أي مواد متاحة للتسجيل حالياً في صفحتك.</i>\n\n'
+            f'⏱️ <b>الفحص القادم:</b> في تمام <b>{next_str}</b> (بعد 30 دقيقة تقريباً)'
         )
         send_telegram_message(msg)
         return
@@ -88,7 +98,8 @@ def run_check():
     header += f'👤 الساعات المسموحة: <b>{allowed_hours}</b> | المدفوعة: <b>{paid_hours}</b> | المسجلة: <b>{registered_hours}</b>\n'
     header += f'⏳ الأيام المتبقية للتسجيل: <b>{remaining_days} يوم</b>\n\n'
 
-    full_message = header + '\n'.join(courses_blocks)
+    footer = f'\n⏱️ <b>الفحص القادم:</b> في تمام الساعة <b>{next_str}</b> (بعد 30 دقيقة تقريباً)'
+    full_message = header + '\n'.join(courses_blocks) + footer
     print('[Checker] Sending report to Telegram...')
     send_telegram_message(full_message)
 
