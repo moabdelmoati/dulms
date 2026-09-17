@@ -32,7 +32,7 @@ EXCLUDED_COURSES = [normalize_code(c) for c in raw_excluded.split(',') if c.stri
 # If a course is in TARGET_GROUPS, ONLY these groups are monitored/alerted.
 # Other non-excluded courses will monitor all groups as usual.
 DEFAULT_TARGET_GROUPS = {
-    'AI414': ['B_Cyber', 'B4_Cyber'],
+    'AI414': ['B4_Cyber'],
     'SEC413': ['A', 'B4'],
     'SECE43': ['B', 'B3'],
     'SEC415': ['B1'],
