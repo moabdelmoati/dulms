@@ -1,4 +1,5 @@
 import time
+import json
 import requests
 import config
 
@@ -58,7 +59,11 @@ def flush_old_updates() -> int:
     url = f'https://api.telegram.org/bot{config.TELEGRAM_BOT_TOKEN}/getUpdates'
     try:
         # Fetching with offset=-1 gives the very latest update
-        res = requests.get(url, params={'offset': -1, 'timeout': 0}, timeout=10).json()
+        res = requests.get(
+            url,
+            params={'offset': -1, 'timeout': 0, 'allowed_updates': json.dumps(['callback_query', 'message'])},
+            timeout=10
+        ).json()
         if res.get('ok') and res.get('result'):
             latest_id = res['result'][-1]['update_id']
             # Confirm / advance offset past the latest update
@@ -78,7 +83,10 @@ def check_stop_signal(offset: int) -> tuple:
         return False, offset
 
     url = f'https://api.telegram.org/bot{config.TELEGRAM_BOT_TOKEN}/getUpdates'
-    params = {'offset': offset, 'timeout': 0, 'allowed_updates': ['callback_query', 'message']}
+    params = {'timeout': 0, 'allowed_updates': json.dumps(['callback_query', 'message'])}
+    if offset > 0:
+        params['offset'] = offset
+
     try:
         resp = requests.get(url, params=params, timeout=5)
         res_json = resp.json()
