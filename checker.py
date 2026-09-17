@@ -1,8 +1,8 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 from delta_client import DeltaClient
-from notifier import send_telegram_message
+from notifier import send_telegram_message, send_consecutive_alerts
 
 def run_check():
     # Egypt / Cairo Timezone
@@ -48,6 +48,7 @@ def run_check():
 
     has_urgent_open_seat = False
     courses_blocks = []
+    urgent_courses = []
 
     for c in courses:
         c_id = c.get('CourseId')
@@ -87,6 +88,13 @@ def run_check():
                         has_urgent_open_seat = True
                         icon = '🟢'
                         status = f'<b>مفتوح للتسجيل! (متبقي {avail} مقعد)</b>'
+                        urgent_courses.append({
+                            'code': c_code,
+                            'name': c_name,
+                            'group': grp,
+                            'avail': avail,
+                            'time': f"{s.get('day', '')} {s.get('time', '')} ({s.get('room', '')})".strip()
+                        })
                     elif blocked:
                         icon = '🔴'
                         status = f'مغلق / Blocked ({reg}/{cap})'
@@ -117,6 +125,12 @@ def run_check():
     full_message = header + '\n'.join(courses_blocks) + footer
     print('[Checker] Sending report to Telegram...')
     send_telegram_message(full_message)
+
+    # If any non-GEN courses have open seats, send consecutive alarm barrage with stop button
+    if urgent_courses:
+        print(f'[Checker] Triggering consecutive alerts for {len(urgent_courses)} open group(s)...')
+        send_consecutive_alerts(urgent_courses)
+
 
 if __name__ == '__main__':
     run_check()
