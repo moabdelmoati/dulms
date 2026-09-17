@@ -1,4 +1,4 @@
-﻿import requests
+import requests
 from bs4 import BeautifulSoup
 import urllib3
 import config
@@ -177,6 +177,7 @@ class DeltaClient:
                             'time': item.get('Time', ''),
                             'room': item.get('ClassRoomName', ''),
                             'type': item.get('NameEn', ''),
+                            'raw_type': item.get('Type', ''),
                             'staff': item.get('Staff', '').strip(),
                             'capacity': cap,
                             'registered': reg,

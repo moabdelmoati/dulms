@@ -1,8 +1,10 @@
-﻿name: Delta LMS Course Availability Checker
+name: Delta LMS Course Availability Checker
 
 on:
+  push:
+    branches: [ main ]
   schedule:
-    - cron: '0,15,30,45 * * * *'
+    - cron: '*/5 * * * *'
   repository_dispatch:
     types: [check_courses]
   workflow_dispatch:
@@ -29,5 +31,7 @@ jobs:
           STUDENT_PASS: ${{ secrets.STUDENT_PASS }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          CHECK_INTERVAL_MINUTES: '2'
+          EXCLUDED_COURSES: 'SEC411,SEC412,GEN403'
         run: |
           python checker.py
