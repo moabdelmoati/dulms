@@ -4,14 +4,19 @@ on:
   push:
     branches: [ main ]
   schedule:
-    - cron: '*/5 * * * *'
+    - cron: '0 */5 * * *'
   repository_dispatch:
     types: [check_courses]
   workflow_dispatch:
 
+concurrency:
+  group: course_checker
+  cancel-in-progress: true
+
 jobs:
   check-courses:
     runs-on: ubuntu-latest
+    timeout-minutes: 360
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -25,7 +30,7 @@ jobs:
         run: |
           pip install -r requirements.txt
 
-      - name: Run Course Checker
+      - name: Run Continuous Course Checker (Checks every 2 minutes)
         env:
           STUDENT_ID: ${{ secrets.STUDENT_ID }}
           STUDENT_PASS: ${{ secrets.STUDENT_PASS }}
@@ -33,5 +38,8 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           CHECK_INTERVAL_MINUTES: '2'
           EXCLUDED_COURSES: 'SEC411,SEC412,GEN403'
+          RUN_MAX_HOURS: '5.5'
+          PYTHONUNBUFFERED: '1'
         run: |
-          python checker.py
+          python local_runner.py
+
