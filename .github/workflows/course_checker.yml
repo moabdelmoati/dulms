@@ -37,7 +37,7 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           CHECK_INTERVAL_MINUTES: '2'
-          EXCLUDED_COURSES: 'SEC411,SEC412,GEN403'
+          EXCLUDED_COURSES: 'SEC411,SEC412,GEN403,SECE43'
           RUN_MAX_HOURS: '5.5'
           PYTHONUNBUFFERED: '1'
         run: |
