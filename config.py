@@ -25,7 +25,7 @@ ALERT_REPEAT_COUNT = int(os.getenv('ALERT_REPEAT_COUNT', '20'))
 ALERT_INTERVAL_SECONDS = int(os.getenv('ALERT_INTERVAL_SECONDS', '3'))
 
 # Courses to completely exclude from checking and alerting
-raw_excluded = os.getenv('EXCLUDED_COURSES', 'SEC411,SEC412,GEN403,SECE43,SEC413')
+raw_excluded = os.getenv('EXCLUDED_COURSES', 'GEN403,SECE43,SEC413')
 EXCLUDED_COURSES = [normalize_code(c) for c in raw_excluded.split(',') if c.strip()]
 
 # Specific target groups to monitor per course (normalized code -> list of group names)
@@ -34,6 +34,8 @@ EXCLUDED_COURSES = [normalize_code(c) for c in raw_excluded.split(',') if c.stri
 DEFAULT_TARGET_GROUPS = {
     'AI414': ['B4_Cyber'],
     'SEC415': ['B1'],
+    'SEC411': ['A1'],
+    'SEC412': ['B2'],
 }
 
 raw_targets = os.getenv('TARGET_GROUPS')
