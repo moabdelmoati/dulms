@@ -20,12 +20,12 @@ TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
 DELTA_BASE_URL = os.getenv('DELTA_BASE_URL', 'https://dulms.deltauniv.edu.eg')
 DELTA_LOGIN_URL = f'{DELTA_BASE_URL}/login.aspx'
 
-CHECK_INTERVAL_MINUTES = int(os.getenv('CHECK_INTERVAL_MINUTES', '2'))
+CHECK_INTERVAL_MINUTES = int(os.getenv('CHECK_INTERVAL_MINUTES', '5'))
 ALERT_REPEAT_COUNT = int(os.getenv('ALERT_REPEAT_COUNT', '20'))
 ALERT_INTERVAL_SECONDS = int(os.getenv('ALERT_INTERVAL_SECONDS', '3'))
 
 # Courses to completely exclude from checking and alerting
-raw_excluded = os.getenv('EXCLUDED_COURSES', 'SEC411,SEC412,GEN403,SECE43')
+raw_excluded = os.getenv('EXCLUDED_COURSES', 'SEC411,SEC412,GEN403,SECE43,SEC413')
 EXCLUDED_COURSES = [normalize_code(c) for c in raw_excluded.split(',') if c.strip()]
 
 # Specific target groups to monitor per course (normalized code -> list of group names)
@@ -33,7 +33,6 @@ EXCLUDED_COURSES = [normalize_code(c) for c in raw_excluded.split(',') if c.stri
 # Other non-excluded courses will monitor all groups as usual.
 DEFAULT_TARGET_GROUPS = {
     'AI414': ['B4_Cyber'],
-    'SEC413': ['A'],
     'SEC415': ['B1'],
 }
 
