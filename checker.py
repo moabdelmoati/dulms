@@ -16,6 +16,10 @@ def get_interval_text(minutes: int) -> str:
         return f"{minutes} دقيقة"
 
 def run_check():
+    if not getattr(config, 'BOT_ENABLED', False):
+        print('[Checker] Bot is completely disabled (BOT_ENABLED=False). Aborting check.')
+        return
+
     # Egypt / Cairo Timezone
     cairo_tz = ZoneInfo("Africa/Cairo")
     now_cairo = datetime.now(cairo_tz)

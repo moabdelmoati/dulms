@@ -20,6 +20,9 @@ TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
 DELTA_BASE_URL = os.getenv('DELTA_BASE_URL', 'https://dulms.deltauniv.edu.eg')
 DELTA_LOGIN_URL = f'{DELTA_BASE_URL}/login.aspx'
 
+# Master switch to enable/disable the bot completely
+BOT_ENABLED = os.getenv('BOT_ENABLED', 'False').lower() in ('true', '1', 'yes')
+
 CHECK_INTERVAL_MINUTES = int(os.getenv('CHECK_INTERVAL_MINUTES', '5'))
 ALERT_REPEAT_COUNT = int(os.getenv('ALERT_REPEAT_COUNT', '20'))
 ALERT_INTERVAL_SECONDS = int(os.getenv('ALERT_INTERVAL_SECONDS', '3'))

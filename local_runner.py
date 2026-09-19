@@ -5,6 +5,10 @@ import config
 from checker import run_check
 
 def main():
+    if not getattr(config, 'BOT_ENABLED', False):
+        print("[Runner] Bot is completely disabled (BOT_ENABLED=False). Exiting.")
+        return
+
     print("🚀 Starting Delta Course Checker Continuous Loop...")
     interval = getattr(config, 'CHECK_INTERVAL_MINUTES', 2)
     print(f"Interval: every {interval} minutes.")

@@ -3,10 +3,6 @@ name: Delta LMS Course Availability Checker
 on:
   push:
     branches: [ main ]
-  schedule:
-    - cron: '0 */5 * * *'
-  repository_dispatch:
-    types: [check_courses]
   workflow_dispatch:
 
 concurrency:
@@ -16,30 +12,9 @@ concurrency:
 jobs:
   check-courses:
     runs-on: ubuntu-latest
-    timeout-minutes: 360
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Install dependencies
+      - name: Bot is Stopped
         run: |
-          pip install -r requirements.txt
+          echo "🛑 Bot is completely stopped by user request."
 
-      - name: Run Continuous Course Checker (Checks every 5 minutes)
-        env:
-          STUDENT_ID: ${{ secrets.STUDENT_ID }}
-          STUDENT_PASS: ${{ secrets.STUDENT_PASS }}
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-          CHECK_INTERVAL_MINUTES: '5'
-          EXCLUDED_COURSES: 'GEN403,SECE43,SEC413'
-          RUN_MAX_HOURS: '5.5'
-          PYTHONUNBUFFERED: '1'
-        run: |
-          python local_runner.py
 
