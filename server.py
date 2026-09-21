@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 import os
 import threading
 import time
@@ -9,8 +9,8 @@ import config
 class HealthHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         if self.path == '/check':
-            # Manual trigger via HTTP
-            threading.Thread(target=run_check).start()
+            # Manual trigger via HTTP forces report
+            threading.Thread(target=run_check, kwargs={'force_report': True}).start()
             self.send_response(200)
             self.send_header('Content-type', 'text/plain; charset=utf-8')
             self.end_headers()
@@ -23,10 +23,12 @@ class HealthHandler(BaseHTTPRequestHandler):
 
 def background_loop():
     print("🚀 Background checker loop started...")
+    iteration = 0
     while True:
+        iteration += 1
         try:
-            print("[Daemon] Running scheduled check...")
-            run_check()
+            print(f"[Daemon] Running scheduled check #{iteration}...")
+            run_check(force_report=(iteration == 1))
         except Exception as e:
             print(f"[Daemon] Error during check: {e}")
         

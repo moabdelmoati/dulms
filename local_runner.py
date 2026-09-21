@@ -9,9 +9,11 @@ def main():
         print("[Runner] Bot is completely disabled (BOT_ENABLED=False). Exiting.")
         return
 
-    print("🚀 Starting Delta Course Checker Continuous Loop...")
     interval = getattr(config, 'CHECK_INTERVAL_MINUTES', 2)
-    print(f"Interval: every {interval} minutes.")
+    report_interval = getattr(config, 'REPORT_INTERVAL_MINUTES', 30)
+    print("🚀 Starting Delta Course Checker Continuous Loop...")
+    print(f"Check interval: every {interval} minutes.")
+    print(f"Report interval: every {report_interval} minutes (or immediately on open seats).")
     
     max_hours = float(os.getenv('RUN_MAX_HOURS', '0'))
     start_time = time.time()
@@ -22,7 +24,8 @@ def main():
         elapsed = (time.time() - start_time) / 3600
         print(f"\n--- Running Check #{iteration} (Elapsed: {elapsed:.2f}h) ---")
         try:
-            run_check()
+            # Force report on the first iteration so the user immediately knows the bot is active
+            run_check(force_report=(iteration == 1))
         except Exception as e:
             print(f"Error during check #{iteration}: {e}")
 

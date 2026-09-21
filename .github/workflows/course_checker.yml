@@ -30,14 +30,15 @@ jobs:
         run: |
           pip install -r requirements.txt
 
-      - name: Run Continuous Course Checker (Checks every 5 minutes)
+      - name: Run Continuous Course Checker (Checks every 2 minutes, Reports every 30 minutes)
         env:
           STUDENT_ID: ${{ secrets.STUDENT_ID }}
           STUDENT_PASS: ${{ secrets.STUDENT_PASS }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           BOT_ENABLED: 'true'
-          CHECK_INTERVAL_MINUTES: '5'
+          CHECK_INTERVAL_MINUTES: '2'
+          REPORT_INTERVAL_MINUTES: '30'
           EXCLUDED_COURSES: 'GEN403,SECE43,SEC413,SEC411,SEC412,SEC415'
           RUN_MAX_HOURS: '5.5'
           PYTHONUNBUFFERED: '1'

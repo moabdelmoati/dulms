@@ -23,7 +23,8 @@ DELTA_LOGIN_URL = f'{DELTA_BASE_URL}/login.aspx'
 # Master switch to enable/disable the bot completely
 BOT_ENABLED = os.getenv('BOT_ENABLED', 'True').lower() in ('true', '1', 'yes')
 
-CHECK_INTERVAL_MINUTES = int(os.getenv('CHECK_INTERVAL_MINUTES', '5'))
+CHECK_INTERVAL_MINUTES = int(os.getenv('CHECK_INTERVAL_MINUTES', '2'))
+REPORT_INTERVAL_MINUTES = int(os.getenv('REPORT_INTERVAL_MINUTES', '30'))
 ALERT_REPEAT_COUNT = int(os.getenv('ALERT_REPEAT_COUNT', '20'))
 ALERT_INTERVAL_SECONDS = int(os.getenv('ALERT_INTERVAL_SECONDS', '3'))
 
